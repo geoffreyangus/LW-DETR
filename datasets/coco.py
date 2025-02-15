@@ -161,16 +161,25 @@ def make_coco_transforms_square_div_64(image_set):
 
 
 def build(image_set, args):
-    root = Path(args.coco_path)
-    assert root.exists(), f'provided COCO path {root} does not exist'
-    mode = 'instances'
-    PATHS = {
-        "train": (root / "train2017", root / "annotations" / f'{mode}_train2017.json'),
-        "val": (root /  "val2017", root / "annotations" / f'{mode}_val2017.json'),
-        "test": (root / "test2017", root / "annotations" / f'image_info_test-dev2017.json'),
-    }
+    # img_folder = Path("/mnt/e/data/pohang-canal-dataset/pohang00/stereo/left_images")
+    # ann_file = Path("/mnt/e/data/PoLaRIS/00/all/left_coco_annotations.json")
+
+    img_folder = "/mnt/e/data/coco/val2017"
+    ann_file = "/mnt/e/data/coco/annotations/instances_val2017.json"
+
+    print("!!! HARDCODED img_folder", img_folder)
+    print("!!! HARDCODED ann_file", ann_file)
+
+    # root = Path(args.coco_path)
+    # assert root.exists(), f'provided COCO path {root} does not exist'
+    # mode = 'instances'
+    # PATHS = {
+    #     "train": (root / "train2017", root / "annotations" / f'{mode}_train2017.json'),
+    #     "val": (root /  "val2017", root / "annotations" / f'{mode}_val2017.json'),
+    #     "test": (root / "test2017", root / "annotations" / f'image_info_test-dev2017.json'),
+    # }
     
-    img_folder, ann_file = PATHS[image_set.split("_")[0]]
+    # img_folder, ann_file = PATHS[image_set.split("_")[0]]
     
     try:
         square_resize = args.square_resize

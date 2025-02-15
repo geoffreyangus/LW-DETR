@@ -8,5 +8,6 @@
 # ------------------------------------------------------------------------------------------------
 
 
-# TORCH_CUDA_ARCH_LIST="8.0" CUDA_HOME='/path/to/your/cuda/dir'  
-python setup.py build install
+export PYTHON_INCLUDE_DIR=$(python -c "from sysconfig import get_paths; print(get_paths()['include'])")
+export TORCH_CUDA_ARCH_LIST="8.9"
+python setup.py build install --user

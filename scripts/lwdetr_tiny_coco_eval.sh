@@ -3,10 +3,10 @@ coco_path=$1
 checkpoint=$2
 
 python -u -m torch.distributed.launch \
-    --nproc_per_node=8 \
+    --nproc_per_node=1 \
     --use_env \
     main.py \
-    --batch_size 4 \
+    --batch_size 64 \
     --encoder vit_tiny \
     --vit_encoder_num_layers 6 \
     --window_block_indexes 0 2 4 \
