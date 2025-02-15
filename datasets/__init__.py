@@ -15,7 +15,7 @@ import torchvision
 
 from .coco import build as build_coco
 from .o365 import build_o365
-
+from .polaris import build as build_polaris
 
 def get_coco_api_from_dataset(dataset):
     for _ in range(10):
@@ -26,6 +26,8 @@ def get_coco_api_from_dataset(dataset):
 
 
 def build_dataset(image_set, args):
+    if args.dataset_file == "polaris":
+        return build_polaris(image_set, args)
     if args.dataset_file == 'coco':
         return build_coco(image_set, args)
     if args.dataset_file == 'o365':

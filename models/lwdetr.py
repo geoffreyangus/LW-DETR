@@ -571,6 +571,10 @@ def build(args):
     num_classes = 20 if args.dataset_file != 'coco' else 91
     if args.dataset_file == "o365":
         num_classes = 366
+    if args.dataset_file == "polaris":
+        #  TODO(geoff): this is a hack; polaris only has 2 classes but we want 
+        # to "resume" the author's COCO training (which has 91 classes).
+        num_classes = 91
     device = torch.device(args.device)
 
     backbone = build_backbone(args)

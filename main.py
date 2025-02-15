@@ -137,6 +137,7 @@ def get_args_parser():
     # dataset parameters
     parser.add_argument('--dataset_file', default='coco')
     parser.add_argument('--coco_path', type=str)
+    parser.add_argument('--polaris_path', type=str)
     parser.add_argument('--square_resize_div_64', action='store_true')
 
     parser.add_argument('--output_dir', default='output',
