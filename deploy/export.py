@@ -116,11 +116,13 @@ def trtexec(onnx_dir:str, args) -> None:
     engine_dir = onnx_dir.replace(".onnx", f".engine")
     addition = "--useCudaGraph --useSpinWait --warmUp=500 --avgRuns=1000"
     verbose = "--verbose" if args.verbose else ""
+    # geoff: fixed ForeignNode error by following instructions from
+    # https://github.com/NVIDIA/TensorRT/issues/2035
     command = " ".join([
         "trtexec",
             f"--onnx={onnx_dir}",
             f"--saveEngine={engine_dir}",
-            f"--workspace=4096 --fp16",
+            f"--memPoolSize=workspace:16384 --fp16",
             f"{addition}",
             f"{verbose}"])
 
@@ -156,7 +158,7 @@ def main(args):
     model, criterion, postprocessors = build_model(args)
 
     if args.resume:
-        checkpoint = torch.load(args.resume, map_location='cpu')
+        checkpoint = torch.load(args.resume, map_location='cpu', weights_only=False)
         model.load_state_dict(checkpoint['model'], strict=True)
         print(f"load checkpoints {args.resume}")
 
