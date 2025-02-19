@@ -1,6 +1,7 @@
 model_name='lwdetr_tiny_coco'
 coco_path=$1
 checkpoint=$2
+shift 2
 
 python main.py \
     --batch_size 1 \
@@ -26,4 +27,4 @@ python main.py \
     --use_ema \
     --eval --resume $checkpoint \
     --output_dir output/$model_name \
-    export_model ${@:3}
+    export_model "$@"

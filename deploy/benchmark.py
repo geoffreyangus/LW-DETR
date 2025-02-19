@@ -362,10 +362,19 @@ def infer_engine(model, coco_evaluator, time_profile, prefix, img_list, device, 
         im_shape = torch.Tensor(np.array([h, w]).reshape((1, 2)).astype(np.float32)).to(device)
         scale_factor = torch.Tensor(np.array([h / height, w / width]).reshape((1, 2)).astype(np.float32)).to(device)
         
+        # geoff: we have to do some torch cuda operation first before initializing the TRT engine
+        # otherwise the CUDA context is initialized by TRT and then re-initialized by torch; 
+        # torch re-initializing the CUDA context will cause completely erroneous results
+        # context: https://github.com/NVIDIA/TensorRT/issues/4335
+        model = TRTInference(args.path, sync_mode=True, device=f'cuda:{args.device}')
         time_profile.reset()
         with time_profile:
             for _ in range(repeats):
                 outputs = model({"input": samples})
+                print("TRT OUTPUTS", outputs)
+                outputs_onnx = nxrun.InferenceSession("/home/geoffrey/LW-DETR/output/lwdetr_tiny_coco/inference_model.onnx").run(None, {"input": samples.cpu().numpy()})
+                print("ONNX OUTPUTS", outputs_onnx)
+                raise KeyboardInterrupt
 
         time_list.append(time_profile.total / repeats)
         orig_target_sizes = torch.stack([orig_target_sizes], dim=0).to(device)
@@ -505,33 +514,6 @@ class TRTInference(object):
         return self.time_profile.total / n 
 
 
-    def build_engine(self, onnx_file_path, engine_file_path, max_batch_size=32):
-        '''Takes an ONNX file and creates a TensorRT engine to run inference with
-        http://gitlab.baidu.com/paddle-inference/benchmark/blob/main/backend_trt.py#L57
-        '''
-        EXPLICIT_BATCH = 1 << (int)(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)
-        with trt.Builder(self.logger) as builder, \
-            builder.create_network(EXPLICIT_BATCH) as network, \
-            trt.OnnxParser(network, self.logger) as parser, \
-            builder.create_builder_config() as config:
-            
-            config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, 1 << 30) # 1024 MiB
-            config.set_flag(trt.BuilderFlag.FP16)
-
-            with open(onnx_file_path, 'rb') as model:
-                if not parser.parse(model.read()):
-                    print('ERROR: Failed to parse the ONNX file.')
-                    for error in range(parser.num_errors):
-                        print(parser.get_error(error))
-                    return None
-
-            serialized_engine = builder.build_serialized_network(network, config)
-            with open(engine_file_path, 'wb') as f:
-                f.write(serialized_engine)
-
-            return serialized_engine
-
-
 class TimeProfiler(contextlib.ContextDecorator):
     def __init__(self, ):
         self.total = 0
@@ -576,7 +558,7 @@ def main(args):
         sess = nxrun.InferenceSession(args.path)
         infer_onnx(sess, coco_evaluator, time_profile, prefix, img_list, device=f'cuda:{args.device}', repeats=repeats)
     elif args.path.endswith(".engine"):
-        model = TRTInference(args.path, sync_mode=True, device=f'cuda:{args.device}')
+        model = None
         infer_engine(model, coco_evaluator, time_profile, prefix, img_list, device=f'cuda:{args.device}', repeats=repeats)
     else:
         raise NotImplementedError('Only model file names ending with ".onnx" and ".engine" are supported.')
