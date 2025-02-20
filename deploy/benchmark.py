@@ -371,10 +371,6 @@ def infer_engine(model, coco_evaluator, time_profile, prefix, img_list, device, 
         with time_profile:
             for _ in range(repeats):
                 outputs = model({"input": samples})
-                print("TRT OUTPUTS", outputs)
-                outputs_onnx = nxrun.InferenceSession("/home/geoffrey/LW-DETR/output/lwdetr_tiny_coco/inference_model.onnx").run(None, {"input": samples.cpu().numpy()})
-                print("ONNX OUTPUTS", outputs_onnx)
-                raise KeyboardInterrupt
 
         time_list.append(time_profile.total / repeats)
         orig_target_sizes = torch.stack([orig_target_sizes], dim=0).to(device)
